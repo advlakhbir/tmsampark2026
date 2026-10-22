@@ -1,12 +1,71 @@
 # Deployment, backups, and monitoring
 
-## Suggested hosting
+## Deploy the website to Vercel and the API to Render
+
+The repository is an npm workspaces monorepo. Deploy the Next.js app from `apps/web`; the Render API build must run from the repository root so it can build `packages/shared`.
+
+### 1. Prepare MongoDB Atlas
+
+Create a production database and a database user with access only to that database. Copy the Atlas connection string for `MONGODB_URI`, replacing its username, password, and database name as needed. Configure Atlas Network Access to allow connections from Render. If you cannot use fixed Render egress IPs, Atlas may require an allow-from-anywhere (`0.0.0.0/0`) rule; use a strong database password and least-privilege database user.
+
+### 2. Deploy the API on Render
+
+Create a **Web Service** from the Git repository, using the repository root as its root directory and the **Node** runtime. Set:
+
+| Setting | Value |
+| --- | --- |
+| Build command | `npm ci --include=dev && npm run build -w @tmsampark/shared && npm run build -w @tmsampark/api` |
+| Start command | `npm run start -w @tmsampark/api` |
+| Health check path | `/api/v1/health` |
+
+Set these environment variables in Render:
+
+| Variable | Value |
+| --- | --- |
+| `NODE_ENV` | `production` |
+| `MONGODB_URI` | Your production Atlas connection string |
+| `SESSION_SECRET` | A unique random secret of at least 32 characters |
+| `FRONTEND_URL` | Your Vercel production website origin, e.g. `https://www.example.com` |
+| `CORS_ORIGINS` | The exact Vercel production origin, e.g. `https://www.example.com` |
+| `COOKIE_SECURE` | `true` |
+
+Render supplies `PORT`; do not hard-code it. Add any integration variables (SMTP, Razorpay, SMS, or malware scanning) only when those integrations are configured.
+
+The API writes uploaded customer documents to local storage by default. Render's local filesystem is ephemeral, so configure S3-compatible storage (`STORAGE_DRIVER=s3` and the `S3_*` variables) before accepting uploads, or attach a Render persistent disk and set `STORAGE_PATH` to its mount path. Do not rely on the default local path for production documents.
+
+After deployment, note the Render service URL, such as `https://tmsampark-api.onrender.com`. Check `https://<render-service>.onrender.com/api/v1/health` and `/api/v1/ready`.
+
+### 3. Deploy the website on Vercel
+
+Import the same Git repository as a Vercel project. Set the **Root Directory** to `apps/web` and keep the Next.js framework preset. Enable including files outside the root directory if Vercel offers that option, because the app imports the shared workspace package. Use this build command:
+
+```sh
+cd ../.. && npm run build -w @tmsampark/shared && npm run build -w @tmsampark/web
+```
+
+Set these Vercel environment variables for Production (and Preview too if you want preview deployments to call the API):
+
+| Variable | Value |
+| --- | --- |
+| `API_URL` | The Render service origin, e.g. `https://tmsampark-api.onrender.com` (no trailing slash) |
+| `NEXT_PUBLIC_SITE_URL` | The canonical website origin, e.g. `https://www.example.com` |
+
+`API_URL` is used by the Next.js rewrite, server-rendered pages, and redirect middleware. Set it before the first production build and redeploy after changing it. The browser calls `/api` on the Vercel domain; Next.js forwards those requests to Render, keeping the session cookies on the website origin.
+
+### 4. Finish production setup
+
+1. Add your custom domain in Vercel and use that exact HTTPS origin for `FRONTEND_URL` and `CORS_ORIGINS` in Render. If you use Vercel preview URLs, add the specific preview origin to `CORS_ORIGINS` when needed; entries are comma-separated and matched exactly.
+2. In the Render Shell, run `npm run seed` once if you want the sample catalogue, then create the first administrator with `npm run create-admin -- --email you@company.com --password "a-long-unique-password1" --name "Operations"`. Do not store that password in the repository or service environment.
+3. Check `https://<render-service>.onrender.com/api/v1/ready`, sign in through the deployed website, and verify an authenticated action and document upload/download before launch.
+4. Configure the optional integrations and production legal/contact content described below.
+
+## Other hosting options
 
 - Next.js website: Vercel, or the `apps/web` Docker image behind any Node host.
 - Express API: Render, a VPS, or the `apps/api` Docker image.
 - Database: MongoDB Atlas.
 
-Set `API_URL` on the website to the public API origin if the two hosts differ. In that case set `COOKIE_SECURE=true`, `CORS_ORIGINS` to the website origin, and serve both over HTTPS. Same-site cookies are simpler if a reverse proxy serves the website and `/api` on one host. The Next rewrite is the local-development shape of that proxy.
+For a different split-host setup, serve both hosts over HTTPS, set `COOKIE_SECURE=true`, set `CORS_ORIGINS` to the exact website origin, and point the website's `API_URL` at the public API origin. The Next rewrite proxies browser `/api/*` requests to the API.
 
 ## Production environment
 

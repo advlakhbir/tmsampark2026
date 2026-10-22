@@ -1,0 +1,4 @@
+{
+  "installCommand": "npm install --prefix ../..",
+  "buildCommand": "npm run build -w @tmsampark/shared --prefix ../.. && npx next build"
+}
