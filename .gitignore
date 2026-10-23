@@ -8,10 +8,11 @@ coverage
 !.env.example
 *.log
 .DS_Store
-apps/api/storage
-apps/api/dist
-apps/web/.next
-apps/web/tsconfig.tsbuildinfo
+apps/
+backend/storage
+backend/dist
+frontend/.next
+frontend/tsconfig.tsbuildinfo
 *.tsbuildinfo
 playwright-report
 test-results
