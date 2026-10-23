@@ -6,8 +6,8 @@ This is not a government website. Sample professional fees are labelled and are 
 
 ## Applications
 
-- `apps/web` — Next.js App Router site, admin workspace, and customer portal
-- `apps/api` — Express REST API under `/api/v1`
+- `frontend` — Next.js App Router site, admin workspace, and customer portal
+- `backend` — Express REST API under `/api/v1`
 - `packages/shared` — roles, statuses, money helpers, and Zod form schemas
 
 ## Local setup

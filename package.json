@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "description": "TMSAMPARK legal and business compliance services platform",
   "workspaces": [
-    "apps/*",
+    "frontend",
+    "backend",
     "packages/*"
   ],
   "scripts": {

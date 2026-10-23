@@ -2,7 +2,7 @@
 
 ## Deploy the website to Vercel and the API to Render
 
-The repository is an npm workspaces monorepo. Deploy the Next.js app from `apps/web`; the Render API build must run from the repository root so it can build `packages/shared`.
+The repository is an npm workspaces monorepo. The website is in `frontend` and the API is in `backend`. Deploy the Next.js app from `frontend`. The Render API build must run from the repository root so it can build `packages/shared`.
 
 ### 1. Prepare MongoDB Atlas
 
@@ -37,10 +37,10 @@ After deployment, note the Render service URL, such as `https://tmsampark-api.on
 
 ### 3. Deploy the website on Vercel
 
-Import the same Git repository as a Vercel project. Set the **Root Directory** to `apps/web` and keep the Next.js framework preset. Enable including files outside the root directory if Vercel offers that option, because the app imports the shared workspace package. Use this build command:
+Import the same Git repository as a Vercel project. Set the **Root Directory** to `frontend` and keep the Next.js framework preset. Enable including files outside the root directory if Vercel offers that option, because the app imports the shared workspace package. Use this build command:
 
 ```sh
-cd ../.. && npm run build -w @tmsampark/shared && npm run build -w @tmsampark/web
+cd .. && npm run build -w @tmsampark/shared && npm run build -w @tmsampark/web
 ```
 
 Set these Vercel environment variables for Production (and Preview too if you want preview deployments to call the API):
@@ -61,8 +61,8 @@ Set these Vercel environment variables for Production (and Preview too if you wa
 
 ## Other hosting options
 
-- Next.js website: Vercel, or the `apps/web` Docker image behind any Node host.
-- Express API: Render, a VPS, or the `apps/api` Docker image.
+- Next.js website: Vercel, or the `frontend` Docker image behind any Node host.
+- Express API: Render, a VPS, or the `backend` Docker image.
 - Database: MongoDB Atlas.
 
 For a different split-host setup, serve both hosts over HTTPS, set `COOKIE_SECURE=true`, set `CORS_ORIGINS` to the exact website origin, and point the website's `API_URL` at the public API origin. The Next rewrite proxies browser `/api/*` requests to the API.

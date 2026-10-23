@@ -27,7 +27,7 @@ Amounts are integer paise. GST is calculated on professional fees and add-ons. G
 
 ## Documents
 
-`STORAGE_DRIVER=local` writes under `apps/api/storage`, which is gitignored. `STORAGE_DRIVER=s3` uses a private object and can return a short-lived signed URL. File type is checked from the bytes, not only the browser's MIME type.
+`STORAGE_DRIVER=local` writes under `backend/storage`, which is gitignored. `STORAGE_DRIVER=s3` uses a private object and can return a short-lived signed URL. File type is checked from the bytes, not only the browser's MIME type.
 
 ## Orders and applications
 
